@@ -84,6 +84,10 @@ header .head_btn_right {
   margin: 20px 0 30px;
 }
 
+.DiaryList .menu_wrapper .left_col select {
+  font-family: 'Nanum Pen Script', cursive;
+}
+
 .DiaryList .menu_wrapper .right_col {
   flex-grow: 1;
 }

@@ -43,7 +43,7 @@ const DiaryList = ({ diaryList }) => {
     // diaryList의 원본을 건드리지않기 위해 깊은복사
     const copyList = JSON.parse(JSON.stringify(diaryList));
 
-    // 감정 정렬콜백함수
+    // 감정 정렬 콜백함수
     const filterCallBack = (item) => {
       if (filter === 'good') {
         return parseInt(item.emotion) <= 3;
@@ -52,23 +52,24 @@ const DiaryList = ({ diaryList }) => {
       }
     };
 
+    // 날짜 정렬 콜백함수
+    const compare = (a, b) => {
+      if (sortType === 'latest') {
+        return parseInt(a.date) - parseInt(b.date);
+      } else {
+        return parseInt(b.date) - parseInt(a.date);
+      }
+    };
+
     // 감정 정렬함수
     const filteredList =
       filter === 'all' ? copyList : copyList.filter((it) => filterCallBack(it));
 
     // 날짜 정렬함수(감정점수를 필터시킨것을 정렬)
-    const sortedList = filteredList.sort((a, b) => {
-      if (sortType === 'latest') {
-        return parseInt(b.date) - parseInt(a.date);
-      } else {
-        return parseInt(a.date) - parseInt(b.date);
-      }
-    });
+    const sortedList = filteredList.sort(compare);
 
     return sortedList;
   };
-
-  //
 
   return (
     <div className="DiaryList">
