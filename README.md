@@ -1,70 +1,332 @@
-# Getting Started with Create React App
+# 감정일기
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 페이지 라우팅
 
-## Available Scripts
+- SPA방식을 따르며 CSR로 페이지 렌더링
 
-In the project directory, you can run:
+  - 페이지 이동시 서버와의 통신 없이 리액트앱이 페이지를 업데이트 시키므로 전환이 빠름
+  - 데이터가 필요한 경우에는 서버와 데이터만 요청, 전달 받음
 
-### `npm start`
+- react-router-dom 사용기능
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+  1. useParams - Path Varible
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+  ```jsx
+  // :id <- id값을 useParams로 가져온다
+  <Route path="/diary/:id" element={<Diary />} />
+  ```
 
-### `npm test`
+  2. useSearchParams - QueryString : url과 함께 데이터 전달
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  ```jsx
+  // useSearchParams()를 사용해 쿼리값을 가져온다
+  // http://localhost:3000/edit?id=10&mode=dark
+  const [searchParams, setSearchParams] = useSearchParams();
 
-### `npm run build`
+  // 첫번째 인덱스는 get을 통해 쿼리스트링을 꺼내서 사용, 두번째 인덱스는 첫번째인덱스의 값을 변경시키는데 사용(쿼리스트링 변경)
+  const id = searchParams.get('id');
+  console.log(`id: ${id}`);
+  ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  3. useNavigate - PageMoving : 비액션시에도 강제로 페이지 이동시키기
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  ```jsx
+  const navigate = useNavigate();
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  // id, diaryList가 변할때 데이터꺼내오기
+  useEffect(() => {
+    if (diaryList.length >= 1) {
+      const targetDiary = diaryList.find(
+        (it) => parseInt(it.id) === parseInt(id),
+      );
+      if (targetDiary) {
+        setOriginDate(targetDiary);
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [id, diaryList]);
+  ```
 
-### `npm run eject`
+## 기초공사
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 공통 컴포넌트 세팅
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Button : 하나의 버튼을 컴포넌트화 시켜서 각각의 페이지에서 재사용했다. 그러기 위해 어떤 기준으로 얼마만큼 변화하는지를 찾아내 패턴화 시켰다.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```jsx
+// text : 버튼에 들어갈 텍스트를 props로 받기
+// type : 타입을 받아 컬러 스타일링 달리하기
+// onClick : 버튼별로 각각의 함수를 실행시키기 위해 부여
+const MyButton = ({ text, type, onClick }) => {
+  // 버튼의 타입이 지정된게 아니면 디폴트로 값 전환시키기
+  const btnType = ['positive', 'negative'].includes(type) ? type : 'default';
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+  return (
+    <button
+      className={['MyButton', `MyButton_${btnType}`].join(' ')}
+      onClick={onClick}
+    >
+      {text}
+    </button>
+  );
+};
 
-## Learn More
+MyButton.defaultProps = {
+  type: 'default',
+};
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+export default MyButton;
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```jsx
+// 버튼 컴포넌트 특정영역 사용예시
+<MyButton
+  type={'positive'}
+  text={'새 일기 쓰기'}
+  onClick={() => navigate('/new')}
+/>
+```
 
-### Code Splitting
+- Header : 반복되는 레이아웃중 하나인 헤더영역을 컴포넌트화 시켜 재사용 하였다. 텍스트와 버튼의 위치가 여러 페이지에서 동일한것을 체크해 css스타일링을 잡고 텍스트만 바꿀수있고, 버튼은 들어가야하는곳에만 들어갈 수 있도록 세팅.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```jsx
+// headText : 영역별 달라지는 텍스트 props
+// leftChild : 왼쪽 영역에 들어가는 컴포넌트 배치
+// rightChild : 오른쪽 영역에 들어가는 컴포넌트 배치
+const MyHeader = ({ headText, leftChild, rightChild }) => {
+  return (
+    <header>
+      <div className="head_btn_left">{leftChild}</div>
+      <div className="head_text">{headText}</div>
+      <div className="head_btn_right">{rightChild}</div>
+    </header>
+  );
+};
 
-### Analyzing the Bundle Size
+export default MyHeader;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```jsx
+// 헤더 컴포넌트 사용예시
+<MyHeader
+  headText={isEdit ? '일기 수정하기' : '새 일기쓰기'}
+  leftChild={<MyButton text={'< 뒤로가기'} onClick={() => navigate(-1)} />}
+  rightChild={
+    isEdit && (
+      <MyButton text={'삭제하기'} type={'negative'} onClick={handleRemove} />
+    )
+  }
+/>
+```
 
-### Making a Progressive Web App
+## Home
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- 최초 진입화면으로 상단의 날짜를 변경할수 있는 버튼컴포넌트와 작성된 일기리스트를 보여준다.
 
-### Advanced Configuration
+```jsx
+// 초기 랜더시 현재에 해당하는 월에 있는 일기들만 보여지기
+useEffect(() => {
+  if (diaryList.length >= 1) {
+    const firstDay = new Date(
+      curDate.getFullYear(),
+      curDate.getMonth(),
+      1,
+    ).getTime();
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+    const lastDay = new Date(
+      curDate.getFullYear(),
+      curDate.getMonth() + 1,
+      0,
+      23,
+      56,
+      59,
+    ).getTime();
 
-### Deployment
+    setData(
+      diaryList.filter((it) => firstDay <= it.date && it.date <= lastDay),
+    );
+  }
+}, [curDate, diaryList]);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+// 월 앞으로가기
+const increaseMonth = () => {
+  setCurDate(
+    new Date(curDate.getFullYear(), curDate.getMonth() + 1, curDate.getDate()),
+  );
+};
 
-### `npm run build` fails to minify
+// 월 뒤로가기
+const decreaseMonth = () => {
+  setCurDate(
+    new Date(curDate.getFullYear(), curDate.getMonth() - 1, curDate.getDate()),
+  );
+};
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## List
+
+- 작성한 일기들의 리스트를 보여준다. 감정점수를 3가지 분류로 나누어주는 필터와, 날짜를 최신순과 오래된순으로 정렬할 수 있는 필터를 가지고 있다.
+
+```jsx
+// 셀렉트 옵션으로 들어갈 값들을 객체로 정리, 키값과 구조를 통일해 재사용이 가능하다.
+const sortOptionList = [
+  { value: 'latest', name: '최신 순' },
+  { value: 'oldest', name: '오래된 순' },
+];
+
+const filterOptionList = [
+  { value: 'all', name: '전부 다' },
+  { value: 'good', name: '좋은 감정만' },
+  { value: 'bad', name: '안 좋은 감정만' },
+];
+```
+
+```jsx
+// 하나의 셀렉트 컴포넌트를 만들어 두개의 필터를 제작.
+const ControlMenu = ({ value, onChange, optionList }) => {
+  return (
+    <select
+      className="ControlMenu"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {optionList.map((it, idx) => (
+        <option key={idx} value={it.value}>
+          {it.name}
+        </option>
+      ))}
+    </select>
+  );
+};
+```
+
+```jsx
+// 순서정렬, 감정정렬 필터 - 상태 값의 변화를 사용하기 위해 useState를 사용
+const [sortType, setSortType] = useState('latest');
+const [filter, setFilter] = useState('all');
+
+// 순서 정렬 value에 따른 정렬값 반환 함수
+const getProcessedDiaryList = () => {
+  // diaryList의 원본을 건드리지않기 위해 깊은복사
+  const copyList = JSON.parse(JSON.stringify(diaryList));
+
+  // 감정 정렬 콜백함수
+  const filterCallBack = (item) => {
+    if (filter === 'good') {
+      return parseInt(item.emotion) <= 3;
+    } else {
+      return parseInt(item.emotion) > 3;
+    }
+  };
+
+  // 날짜 정렬 콜백함수
+  const compare = (a, b) => {
+    if (sortType === 'latest') {
+      return parseInt(a.date) - parseInt(b.date);
+    } else {
+      return parseInt(b.date) - parseInt(a.date);
+    }
+  };
+
+  // 감정 정렬함수
+  const filteredList =
+    filter === 'all' ? copyList : copyList.filter((it) => filterCallBack(it));
+
+  // 날짜 정렬함수(감정점수를 필터시킨것을 정렬)
+  const sortedList = filteredList.sort(compare);
+
+  return sortedList;
+};
+```
+
+```jsx
+// 초기 데이터값이 잘못넘어오거나 없을경우 에러가 나지않기위해 default값으로 빈 배열 설정해두기
+DiaryList.defaultProps = {
+  diaryList: [],
+};
+```
+
+## Diary DetailPage
+
+- 리스트에 있는 일기를 클릭하면 해당 일기의 상세페이지를 보여준다.
+
+```jsx
+const Diary = () => {
+  // :id 값과 일기데이터의 id 값을 매치하기 위함
+  const { id } = useParams();
+  // context를 활용해 list 가져오기
+  const diaryList = useContext(DiaryStateContext);
+  const navigate = useNavigate();
+  const [data, setData] = useState();
+
+  // 초기 렌더시
+  useEffect(() => {
+    // 일기데이터가 1개거나 1개 이상일 때
+    if (diaryList.length >= 1) {
+      // id 값을 사용해 가져올 일기데이터 찾기
+      const targetDiary = diaryList.find(
+        (it) => parseInt(it.id) === parseInt(id),
+      );
+
+      // 일기가 존재할때와 아닐때를 분기
+      if (targetDiary) {
+        setData(targetDiary);
+      } else {
+        alert('없는 일기입니다.');
+        // 일기가 없다면 강제로 메인페지이 이동, 뒤로가기할 수 없도록 replace 설정
+        navigate('/', { replace: true });
+      }
+    }
+  }, [id, diaryList]);
+
+  // 데이터가 없거나 불러오는 시간이 걸릴때에는 하기 텍스트 로드
+  if (!data) {
+    return <div className="DiaryPage">로딩중입니다.</div>;
+  } else {
+    // 데이터가 불러와지면 하기값 리턴하여 랜더링
+    const curEmotionData = emotionList.find(
+      (it) => parseInt(it.emotion_id) === parseInt(data.emotion),
+    );
+
+    return (
+      ...
+    );
+  }
+};
+
+export default Diary;
+```
+
+## DiaryEditor
+
+- 생성한 일기를 수정할 수 있는 페이지
+
+```jsx
+// context로 저장해둔 함수들 불러오기
+const { onCreate, onEdit, onRemove } = useContext(DiaryDispatchContext);
+
+// 작성하기 버튼
+const handleSubmi = () => {
+  if (content.length < 1) {
+    contentRef.current.focus();
+    return;
+  }
+
+  if (
+    window.confirm(
+      // isEdit = 수정하기 페이지와 새로작성하기 페이지를 나눌수 있도록 Edit페이지에서 props를 내려줌
+      isEdit ? '일기를 수정하시겠습니까?' : '새로운 일기를 작성하시겠습니까?',
+    )
+  ) {
+    // 수정하기와 생성하기에 전달하는 props가 다르므로 추가 분기
+    if (!isEdit) {
+      onCreate(date, content, emotion);
+    } else {
+      onEdit(originData.id, date, content, emotion);
+    }
+  }
+  onCreate(date, content, emotion);
+  navigate('/', { replace: true });
+};
+```
