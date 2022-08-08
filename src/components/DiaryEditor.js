@@ -21,7 +21,7 @@ const DiaryEditor = ({ isEdit, originData }) => {
     setEmotion(emotion);
   };
 
-  const handleSubmi = () => {
+  const handleSubmit = () => {
     if (content.length < 1) {
       contentRef.current.focus();
       return;
@@ -38,13 +38,12 @@ const DiaryEditor = ({ isEdit, originData }) => {
         onEdit(originData.id, date, content, emotion);
       }
     }
-    onCreate(date, content, emotion);
     navigate('/', { replace: true });
   };
 
   // 삭제하기
   const handleRemove = () => {
-    if (window.confirm('정말 삭제하시겠습니다?')) {
+    if (window.confirm('정말 삭제하시겠습니까?')) {
       onRemove(originData.id);
       navigate('/', { replace: true });
     }
@@ -118,7 +117,7 @@ const DiaryEditor = ({ isEdit, originData }) => {
             <MyButton
               text={'작성완료'}
               type={'positive'}
-              onClick={handleSubmi}
+              onClick={handleSubmit}
             />
           </div>
         </section>
