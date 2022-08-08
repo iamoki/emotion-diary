@@ -9,6 +9,7 @@ const Home = () => {
   const diaryList = useContext(DiaryStateContext);
 
   const [data, setData] = useState([]);
+
   const [curDate, setCurDate] = useState(new Date());
   const headText = `${curDate.getFullYear()}년 ${curDate.getMonth() + 1}월`;
 

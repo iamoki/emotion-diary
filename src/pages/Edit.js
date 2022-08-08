@@ -5,7 +5,7 @@ import { DiaryStateContext } from '../App';
 import DiaryEditor from '../components/DiaryEditor';
 
 const Edit = () => {
-  const [originData, setOriginDate] = useState();
+  const [originData, setOriginData] = useState();
   const navigate = useNavigate();
   const { id } = useParams();
   const diaryList = useContext(DiaryStateContext);
@@ -23,7 +23,7 @@ const Edit = () => {
         (it) => parseInt(it.id) === parseInt(id),
       );
       if (targetDiary) {
-        setOriginDate(targetDiary);
+        setOriginData(targetDiary);
       } else {
         navigate('/', { replace: true });
       }
