@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import MyButton from './MyButton';
@@ -24,7 +25,10 @@ const DiaryItem = ({ id, emotion, content, date }) => {
         ].join(' ')}
       >
         {/* process.env.PUBLIC_URL = 퍼블릭디렉토리의 주소 */}
-        <img src={process.env.PUBLIC_URL + `assets/emotion${emotion}.png`} />
+        <img
+          src={process.env.PUBLIC_URL + `assets/emotion${emotion}.png`}
+          alt="emotion"
+        />
       </div>
       <div className="info_wrapper" onClick={goDetail}>
         <div className="diary_date">{strDate}</div>
@@ -37,4 +41,4 @@ const DiaryItem = ({ id, emotion, content, date }) => {
   );
 };
 
-export default DiaryItem;
+export default React.memo(DiaryItem);
