@@ -12,6 +12,12 @@ const Home = () => {
   const [curDate, setCurDate] = useState(new Date());
   const headText = `${curDate.getFullYear()}년 ${curDate.getMonth() + 1}월`;
 
+  // 타이틀 번경
+  useEffect(() => {
+    const titleElement = document.getElementsByTagName('title')[0];
+    titleElement.innerHTML = `감정 일기장`;
+  }, []);
+
   // 해당 월에 있는 일기들만 보여지기
   useEffect(() => {
     if (diaryList.length >= 1) {
